@@ -19,7 +19,16 @@
                     <span class="text-muted">시공 견적 요청</span>
                     <div class="title mt-n1">REQUESTS</div>
                 </div>
-                <button class="border-btn fx-n1 px-5" data-toggle="modal" data-target="#request-modal">견적 요청</button>
+                <div class="d-flex align-items-center">
+                    <select name="order" id="order" class="mr-5 form-control" style="width: 200px">
+                        <option value="">기본</option>
+                        <option <?=$order === "user" ? "selected" : ""?> value="user">유저별로 보기</option>
+                        <option <?=$order === "wait" ? "selected" : ""?> value="wait">진행중만 보기</option>
+                        <option <?=$order === "complete" ? "selected" : ""?> value="complete">완료만 보기</option>
+                        <option <?=$order === "start_date" ? "selected" : ""?> value="start_date">시공일로 보기</option>
+                    </select>
+                    <button class="border-btn fx-n1 px-5" data-toggle="modal" data-target="#request-modal">견적 요청</button>
+                </div>
             </div>
             <div class="table-head mt-2">
                 <div class="cell-10">상태</div>
@@ -55,10 +64,10 @@
                     <small class="text-muted fx-n2">개</small>
                 </div>
                 <div class="cell-15">
-                    <?php if(!$request->sid && user()->auth && array_search($request->id, $myList) === false): ?>
+                    <?php if(!$request->sid && user()->auth && array_search($request->id, $myList) === false && $request->uid !== user()->id): ?>
                         <button class="black-btn fx-n2 px-2 py-2" data-toggle="modal" data-target="#response-modal" data-id="<?=$request->id?>">견적 보내기</button>
                     <?php elseif($request->uid == user()->id) :?>
-                        <button class="black-btn fx-n2 px-2 py-2">견적 보기</button>
+                        <button class="black-btn fx-n2 px-2 py-2" data-toggle="modal" data-target="#view-modal" data-id="<?=$request->id?>">견적 보기</button>
                     <?php else: ?>
                         -
                     <?php endif;?>
@@ -68,6 +77,13 @@
         </div>
     </div>
 </div>
+<script>
+    window.onload = function(){
+        $("#order").on("change", function(){
+            location.href = '/estimates?order=' + this.value;
+        });
+    }
+</script>
 <!-- / 요청 영역 -->
 
 <!-- 응답 영역 -->
@@ -82,10 +98,10 @@
                 </div>
                 <div>
                     <span class="mr-2">보낸 견적</span>
-                    <span class="fx-2 text-gold">5</span>
+                    <span class="fx-2 text-gold"><?=number_format($myInfo->cnt)?></span>
                     <span class="mr-4 text-muted">개</span>
                     <span class="mr-2">총 금액</span>
-                    <span class="fx-2 text-gold">500,000</span>
+                    <span class="fx-2 text-gold"><?=number_format($myInfo->total)?></span>
                     <span class="text-muted">원</span>
                 </div>
             </div>
@@ -188,3 +204,69 @@
     });
 </script>
 <!-- /응답 모달 -->
+
+<!-- 보기 모달 -->
+<div id="view-modal" class="modal fade">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-body px-4 py-5">
+                <div class="px-3 text-center mb-5">
+                    <div class="title">ESTIMATE</div>
+                </div>
+                <div class="table-head">
+                    <div class="cell-30">전문가 정보</div>
+                    <div class="cell-40">비용</div>
+                    <div class="cell-30">+</div>
+                </div>
+                <div class="list">
+                </div>
+            </div>
+        </div>
+    </div>
+    <form action="/estimates/pick" method="post">
+        <input type="hidden" id="pick_qid" name="qid">
+        <input type="hidden" id="pick_sid" name="sid">
+    </form>
+</div>
+<script>
+    $(function(){
+        $("[data-target='#view-modal']").on("click", function(){
+            $("#pick_qid").val(this.dataset.id);
+            $.getJSON("/estimates/view?id="+this.dataset.id, function(res){
+                if(res.result){
+                    $("#view-modal .list").html('');
+                    res.list.forEach(item => {
+                        $("#view-modal .list").append(`<div class="table-row">
+                            <div class="cell-30">
+                                <span>${item.user_name}</span>
+                                <small class="text-gold">(${item.user_id})</small>
+                            </div>
+                            <div class="cell-40">
+                                <span>${parseInt(item.price).toLocaleString()}</span>
+                                <small class="text-muted">원</small>
+                            </div>
+                            <div class="cell-30">
+                                ${
+                                    res.request.sid ? ``:
+                                    `<button class="black-btn fx-n2" data-id="${item.id}">
+                                        선택
+                                    </button>`
+                                }
+                            </div>
+                        </div>`);
+                    });
+                }
+            });
+        });
+
+        $("#view-modal form").on("submit", e => {
+            e.preventDefault();
+        });
+
+        $("#view-modal .list").on("click", "button", function(){
+            $("#pick_sid").val(this.dataset.id);
+            $("#view-modal form")[0].submit();
+        });
+    });
+</script>
+<!-- /보기 모달 -->

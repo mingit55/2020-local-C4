@@ -73,36 +73,8 @@
                 </div>
             </div>
         </div>
-        <div class="list">
-            <?php foreach($reviewList as $review):?>
-            <div class="table-row">
-                <div class="cell-2150">
-                    <span class="fx-1"><?=$review->s_name?></span>
-                    <span class="fx-n2 text-gold">(<?=$review->s_id?>)</span>
-                </div>
-                <div class="cell-40 px-3">
-                    <p><?=nl2br(htmlentities($review->content))?></p>
-                </div>
-                <div class="cell-15">
-                    <span class="fx-1"><?=$review->user_name?></span>
-                    <span class="fx-n2 text-gold">(<?=$review->user_id?>)</span>
-                </div>
-                <div class="cell-15">
-                    <span><?=number_format($review->price)?></span>
-                    <small class="text-muted">원</small>
-                </div>
-                <div class="cell-15">
-                    <div class="text-gold">
-                        <?php for($i = 0; $i < $review->score; $i ++ ):?>
-                            <i class="fa fa-star"></i>
-                        <?php endfor;?>
-                        <?php for(; $i < 5; $i ++): ?>
-                            <i class="fa fa-star-o"></i>
-                        <?php endfor;?>
-                    </div>
-                </div>
-            </div>
-            <?php endforeach;?>
+        <div id="view-list" class="list overflow-hidden">
+
         </div>
     </div>
 </div>
@@ -145,6 +117,63 @@
     $(function(){
         $("[data-target='#review-modal']").on("click", function(){
             $("#sid").val(this.dataset.id);
+        });
+
+        let list = [];
+        
+        $(window).on("scroll", e => {
+            let scrollTop = $("html").scrollTop();
+            let doc_h = $("html").height();
+            let win_h = window.innerHeight;
+
+            if(scrollTop + win_h == doc_h){
+                let viewList = list.splice(0, 5).map(item => {
+                    let html = `<div class="table-row position-relative" style="opacity: 0; left: 100%">
+                        <div class="cell-2150">
+                            <span class="fx-1">${item.s_name}</span>
+                            <span class="fx-n2 text-gold">(${item.s_id})</span>
+                        </div>
+                        <div class="cell-40 px-3">
+                            <p>${item.content}</p>
+                        </div>
+                        <div class="cell-15">
+                            <span class="fx-1">${item.user_name}</span>
+                            <span class="fx-n2 text-gold">(${item.user_id})</span>
+                        </div>
+                        <div class="cell-15">
+                            <span>${parseInt(item.price).toLocaleString()}</span>
+                            <small class="text-muted">원</small>
+                        </div>
+                        <div class="cell-15">
+                            <div class="text-gold">`;
+                    
+                    for(var i = 0; i < item.score; i ++)
+                        html += `<i class="fa fa-star"></i>`;
+                                
+                    for(; i < 5; i ++)
+                        html += `<i class="fa fa-star-o"></i>`;
+
+                    html +=  `</div>
+                        </div>
+                    </div>`;
+                    return $(html);
+                });
+
+                viewList.forEach((x, i) => {
+                    $("#view-list").append(x);
+                    setTimeout(() => {
+                        $(x).animate({
+                            left: "0%" ,
+                            opacity: "1"
+                        }, 1000);
+                    }, i * 100);
+                });
+            }
+        });
+
+        $.getJSON("/specialists/reviews", function(res){
+            if(res.result == false)  return;
+            list = res.list;
         });
     });
 </script>

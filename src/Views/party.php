@@ -40,7 +40,7 @@
                             </div>
                             <div class="text-gold">
                                 <i class="fa fa-star"></i>
-                                <span class="text-darkgold"><?=$knowhow->cnt == 0 ? 0 : floor($knowhow->total / $knowhow->cnt)?></span>
+                                <span class="text-darkgold"><?=$knowhow->cnt == 0 ? 0 : (int)($knowhow->total / $knowhow->cnt)?></span>
                             </div>
                         </div>
                         <div class="mt-2 text-muted fx-n1">

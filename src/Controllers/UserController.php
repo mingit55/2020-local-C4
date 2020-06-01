@@ -53,13 +53,9 @@ class UserController {
                 WHERE auth = 1";
         $userList = DB::fetchAll($sql);
 
-        $sql = "SELECT R.*, U1.user_id, U1.user_name, U2.user_id s_id, U2.user_name s_name
-                FROM user_reviews R
-                LEFT JOIN users U1 ON U1.id = R.uid
-                LEFT JOIN users U2 ON u2.id = R.sid";
-        $reviewList = DB::fetchAll($sql);
+        
 
-        view("specialist", ["userList" => $userList, "reviewList" => $reviewList]); 
+        view("specialist", ["userList" => $userList]); 
     }
 
     function reviewUser(){
@@ -72,5 +68,15 @@ class UserController {
         
         DB::query("INSERT INTO user_reviews(uid, sid, price, score, content) VALUES (?, ?, ?, ?, ?)", [user()->id, $sid, $price, $score, $content]);
         go("/specialists", "후기가 작성되었습니다.");
+    }
+
+    function getReviews(){
+        $sql = "SELECT R.*, U1.user_id, U1.user_name, U2.user_id s_id, U2.user_name s_name
+                FROM user_reviews R
+                LEFT JOIN users U1 ON U1.id = R.uid
+                LEFT JOIN users U2 ON u2.id = R.sid";
+        $reviewList = DB::fetchAll($sql);       
+        
+        json_response(true, ["list" => $reviewList]);
     }
 }

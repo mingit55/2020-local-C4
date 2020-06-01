@@ -18,10 +18,13 @@ Route::post("/knowhows/reviews", "MainController@reviewKnowhow", "user");
 // 전문가
 Route::get("/specialists", "UserController@specialistPage", "user");
 Route::post("/specialists/reviews", "UserController@reviewUser", "user");
+Route::get("/specialists/reviews", "UserController@getReviews", "user");
 
 // 시공 견적
 Route::get("/estimates", "MainController@estimatePage", "user");
 Route::post("/estimates/requests", "MainController@writeRequest", "user");
 Route::post("/estimates/responses", "MainController@writeResponse", "user");
+Route::get("/estimates/view", "MainController@viewEstimates", "user");
+Route::post("/estimates/pick", "MainController@pickEstimate", "user");
 
 Route::connect();

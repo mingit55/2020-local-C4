@@ -91,8 +91,9 @@
                     </div>
                 </div>
                 <div class="h-100 d-flex align-items-center">
-                    <div class="auth d-lg-flex d-none">
+                    <div class="auth d-lg-flex d-none align-items-center">
                         <?php if(user()):?>
+                            <img src="/upload/users/<?=user()->photo?>" alt="프로필 사진" title="프로필 사진" style="width: 40px; height: 40px; object-fit: cover;" class="mr-3 rounded-pill">
                             <span class="fx-n1 text-gold mr-3"><?=user()->user_name?>(<?=user()->user_id?>)</span>
                             <a href="/logout">로그아웃</a>
                         <?php else: ?>

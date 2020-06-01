@@ -62,16 +62,38 @@ class MainController {
 
     // 시공 견적 페이지
     function estimatePage(){
+        $orderList = ['user', 'wait', 'complete', 'start_date'];
+        $order = isset($_GET['order']) && array_search($_GET['order'], $orderList) !== false ? $_GET['order'] : '';
+        
+
         $sql = "SELECT Q.*, user_name, user_id, cnt
                 FROM requests Q
                 LEFT JOIN users U ON Q.uid = U.id
                 LEFT JOIN (SELECT COUNT(*) cnt, qid FROM responses GROUP BY qid) R ON R.qid = Q.id";
+        if($order === 'wait') {
+            $sql .= " WHERE sid IS NULL";
+        } else if($order === "complete") {
+            $sql .= " WHERE sid IS NOT NULL";
+        } else if($order === "user"){
+            $sql .= " ORDER BY user_id ASC";
+        } else if($order === "start_date"){
+            $sql .= " ORDER BY start_date DESC";
+        }
+
         $requests = DB::fetchAll($sql);
 
         $_myList = DB::fetchAll("SELECT * FROM responses WHERE uid = ?", [user()->id]);
         $myList = [];
         foreach($_myList as $item)
             $myList[] = $item->qid;
+
+
+        $sql = "SELECT COUNT(*) cnt, SUM(price) total
+                FROM requests Q
+                LEFT JOIN responses S ON Q.sid = S.id
+                WHERE Q.sid IS NOT NULL
+                AND S.uid = ?";
+        $myInfo = DB::fetch($sql, [user()->id]);
 
         $sql = "SELECT S.*, content, sid, start_date, user_id, user_name
                 FROM responses S
@@ -80,7 +102,7 @@ class MainController {
                 WHERE S.uid = ?";
         $responses = DB::fetchAll($sql, [user()->id]);
 
-        view("estimate", ["requests" => $requests, "myList" => $myList, "responses" => $responses]);
+        view("estimate", ["order" => $order, "requests" => $requests, "myList" => $myList, "responses" => $responses, "myInfo" => $myInfo]);
     }
 
     function writeRequest(){
@@ -101,5 +123,29 @@ class MainController {
 
         DB::query("INSERT INTO responses (uid, qid, price) VALUES (?, ?, ?)", [user()->id, $qid, $price]);
         go("/estimates", "견적을 보냈습니다.");
+    }
+
+    function viewEstimates(){
+        if(!isset($_GET['id'])) json_response();
+        
+        $req = DB::find('requests', $_GET['id']);
+        if(!$req) json_response();
+        
+        $list = DB::fetchAll("SELECT R.*, user_id, user_name FROM responses R LEFT JOIN users U ON U.id = R.uid WHERE R.qid = ?", [$req->id]);
+
+        json_response(true, ["list" => $list, "request" => $req]);
+    }
+
+    function pickEstimate(){
+        checkInput();
+        extract($_POST);
+
+        $req = DB::find("requests", $qid);
+        $res = DB::find("responses", $sid);
+
+        if(!$req || !$res) back("잘못된 요청입니다.");
+        
+        DB::query("UPDATE requests SET sid = ? WHERE id = ?", [$res->id, $req->id]);
+        go("/estimates", "선택되었습니다.");
     }
 }

@@ -23,7 +23,7 @@ a, label, button { cursor: pointer; user-select: none; }
 a, a:hover { text-decoration: none; }
 p { line-height: 1.5em; word-break: keep-all; margin-bottom: 0; }
 
-.full-height { height: calc(100vh - 468px); }
+.full-height { min-height: calc(100vh - 468px); }
 
 .text-gray { color: #ccc; }
 .bg-gray { background-color: #f8f8f8; }

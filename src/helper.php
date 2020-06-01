@@ -19,16 +19,16 @@ function user(){
 
 function go($url, $message = ""){
     echo "<script>";
-    echo "location.href='$url';";
     if($message != "") echo "alert('$message');";
+    echo "location.href='$url';";
     echo "</script>";
     exit;
 }
 
 function back($message){
     echo "<script>";
-    echo "history.back();";
     if($message != "") echo "alert('$message');";
+    echo "history.back();";
     echo "</script>";
     exit;
 }
@@ -44,29 +44,22 @@ function view($pagePath, $output = []){
     }
 }
 
-function json_response($message, $result = false, $extend = []){
+function json_response($result = false, $extend = []){
     header("Content-Type: application/json");
-    echo json_encode(array_merge(["message" => $message, "result" => $result], $extend));
+    echo json_encode(array_merge(["result" => $result], $extend));
+    exit;
 }
 
-function checkInput($response = "js"){
+function checkInput(){
     foreach($_POST as $input){
         if($input === ""){
-            if($response === "js"){
-                back("모든 정보를 입력해 주세요.");
-            } else {
-                json_response("모든 정보를 입력해 주세요.");
-            }
+            back("모든 정보를 입력해 주세요.");
         }
     }
 
     foreach($_FILES as $file) {
         if(!is_file($file['tmp_name'])) {
-            if($response === "js"){
-                back("파일을 업로드해 주세요.");
-            } else {
-                json_response("파일을 업로드해 주세요.");
-            }           
+            back("파일을 업로드해 주세요.");
         }
     }
 }
